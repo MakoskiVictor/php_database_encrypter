@@ -11,15 +11,26 @@ class DB {
 	private $connection;
 
     public function connect() {
+        echo "\n"."Iniciando conexión a la Base  de Datos /ᐠ_ ꞈ _ᐟ\ɴʏᴀ~"."\n";
         $bd_info = array("Database"=>$this->bd, "UID"=>$this->usuario, "PWD"=>$this->clave);
         $this->connection = sqlsrv_connect($this->servidor, $bd_info);
         if(!$this->connection) {
-            echo "Problema al conectarse a la Base de Datos (ᗒᗣᗕ)՞ <br>"."\n";
-            return false;
+            echo "\n"."Problema al conectarse a la Base de Datos (ᗒᗣᗕ)՞ "."\n";
+            die(print_r(sqlsrv_errors(), true));
         }
-        echo "Conectado a la Base de Datos con éxito ＼（＾∀＾）人（＾∀＾）ノ <br>"."\n";
+        echo "\n"."Conectado a la Base de Datos con éxito ＼（＾∀＾）人（＾∀＾）ノ"."\n";
         return true;
     }
+
+    public function useConection(&$con)
+	{
+		$this->connection = $con;
+	}
+
+    public function getConection()
+	{
+		return $this->connection;
+	}
 
     public function disconnect () {
         if(!is_null($this->connection)) {
@@ -29,22 +40,29 @@ class DB {
 
     public function sendQuery($sql, $params = []) {
         if(is_null($this->connection)) {
-            echo "No tenemos conexión a la DB para enviar la Query (.づ◡﹏◡)づ. <br>"."\n";
+            echo "No tenemos conexión a la DB para enviar la Query (.づ◡﹏◡)づ."."\n";
             return false;
         }
         // Preparar la consulta
-        $statement = sqlsrv_prepare($this->connection, utf8_decode($sql), $params);
-        echo $statement . "\n";
+        $statement = sqlsrv_prepare($this->connection, $sql);
         if($statement === false) {
-            echo "Tuvimos un problema preparando la Query (´Д｀。 <br>"."\n";
+            echo "\n"."Tuvimos un problema preparando la Query (´Д｀。"."\n";
+            print_r(sqlsrv_errors());
             return false;
         }
         // Ejecutar la consulta
-        if(!sqlsrv_execute($statement)) {
-            echo "Una consulta ha salido mal ¯\_(ツ)_/¯  <br>"."\n";
-            echo $statement;
+        $response = sqlsrv_execute($statement);
+        if(!$response) {
+            echo "\n"."Una consulta ha salido mal ¯\_(ツ)_/¯ "."\n";
+            print_r(sqlsrv_errors());
             return false;
         }
-        return true;
+        // Recoger los resultados
+        $results = [];
+        while ($row = sqlsrv_fetch_array($statement, SQLSRV_FETCH_ASSOC)) {
+            $results[] = $row;
+        }
+        return $results;
     }
+    
 }
