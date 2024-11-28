@@ -8,7 +8,7 @@ if ($db->connect()) {
     $postulantes = new Postulantes();
     $conect = $db->getConection();
     $postulantes->useConection($conect);
-    $postulantes->prueba();
+    $postulantes->encriptarPostulantes();
     $db->disconnect();
 } else {
     echo "Malió sal la cosa (｡•́︿•̀｡)"."\n";

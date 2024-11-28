@@ -11,7 +11,7 @@ class DB {
 	private $connection;
 
     public function connect() {
-        echo "\n"."Iniciando conexión a la Base  de Datos /ᐠ_ ꞈ _ᐟ\ɴʏᴀ~"."\n";
+        echo "\n"."Iniciando conexión a la Base  de Datos /ᐠ. ｡.ᐟ\ᵐᵉᵒʷˎˊ˗"."\n";
         $bd_info = array("Database"=>$this->bd, "UID"=>$this->usuario, "PWD"=>$this->clave);
         $this->connection = sqlsrv_connect($this->servidor, $bd_info);
         if(!$this->connection) {
@@ -35,6 +35,7 @@ class DB {
     public function disconnect () {
         if(!is_null($this->connection)) {
             sqlsrv_close($this->connection);
+            echo "\n" . "Conexión cerrada correctamente /ᐠ_ ꞈ _ᐟ\ɴʏᴀ~" . "\n";
         }
     }
 

@@ -8,6 +8,23 @@ class Postulantes extends DB {
     /* function __construct() {
     } */
 
+    public function requestTotalFiles() {
+        $sql = "SELECT COUNT(*) AS TotalFilas
+                FROM [dbo].[Postulantes];";
+        $response = parent::sendQuery($sql);
+        if(!$response) {
+            echo "\n"."No hay respuesta de la DB (ಠ╭╮ಠ)";
+            return false;
+        }
+        echo "\n"."Cantidad de filas a procesar: " . $response[0]['TotalFilas'] . " ⊂(・﹏・⊂)"."\n";
+        return $response[0]['TotalFilas'];
+    }
+
+    public function encriptarPostulantes() {
+        $filesToRequest = 10;
+        $total_files = self::requestTotalFiles();
+        self::prueba();
+    }
     public function prueba() {
         $sql = "SELECT postulanteid, nombre, email, telefono 
         FROM [dbo].[Postulantes] 
