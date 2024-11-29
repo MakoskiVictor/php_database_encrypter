@@ -69,4 +69,18 @@ class Encrypter {
         return $data;
     }
 
+    public function EncriptarArrayDeArray($data, $types) {
+        if (!is_array($data) || (count($data) > 0 && !is_array(reset($data)))) {
+            throw new InvalidArgumentException("El parámetro debe ser un array de arrays");
+        }
+        foreach ($data as $index => $item) {
+            foreach($types as $key) {
+                if (isset($item[$key])) {
+                    $data[$index][$key] = $this->Encriptar($item[$key]);
+                }
+            }
+        }
+        return $data;
+    }
+
 }
