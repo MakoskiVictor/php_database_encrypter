@@ -18,11 +18,6 @@ class Encrypter {
     }
 
     public function Desencriptar($data) {
-        // Si no está encriptado, lo devolvemos
-        if ($decrypted === false) {
-            return $data;
-        }
-
         $decoded = base64_decode($data);
         $decrypted = openssl_decrypt($decoded, $this->method, $this->key, 0);
         if($decrypted === false) {
