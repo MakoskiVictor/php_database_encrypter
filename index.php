@@ -1,14 +1,14 @@
 <?php
 
 include_once("db/DB.php");
-include_once("tables/Postulantes.php");
+include_once("tables/Orchestrator.php");
 
 $db = new DB();
 if ($db->connect()) {
-    $postulantes = new Postulantes();
+    $orchestrator = new Orchestrator();
     $conect = $db->getConection();
-    $postulantes->useConection($conect);
-    $postulantes->encriptarPostulantes();
+    $orchestrator->useConection($conect);
+    $orchestrator->startEncryption();
     $db->disconnect();
 } else {
     echo "Malió sal la cosa (｡•́︿•̀｡)"."\n";
