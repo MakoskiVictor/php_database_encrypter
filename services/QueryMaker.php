@@ -3,7 +3,7 @@
 class QueryMaker {
     public static function makeTotalFilesQuery ($idColumnName, $tableName) {
         return "SELECT COUNT($idColumnName) AS TotalFiles
-                FROM $tableName;";
+                FROM [dbo].[$tableName];";
     }
 
     public static function makeSelectBlockOfFilesQuery($idColumnName, $columnToEncryptArray, $tableName) {
@@ -11,7 +11,7 @@ class QueryMaker {
         $columnsStr = implode(', ', $columnToEncryptArray);
         
         return "SELECT $idColumnName, $columnsStr
-                FROM $tableName 
+                FROM [dbo].[$tableName]
                 ORDER BY $idColumnName ASC 
                 OFFSET ? ROWS FETCH NEXT ? ROWS ONLY;";
     }
@@ -25,6 +25,26 @@ class QueryMaker {
         // Concatenamos el valor de los arrays con una coma y espacio
         $setColumnsStr = implode(', ', $setParts);
 
-        return "UPDATE $tableName SET $setColumnsStr WHERE $idColumnName = ?;";
+        return "UPDATE [dbo].[$tableName] SET $setColumnsStr WHERE $idColumnName = ?;";
+    }
+
+    public static function makeObtainColumnTypeAndLengthQuery($columnToEncryptArray, $tableName) {
+        $columnArr = array_map(function($column) { return "'".$column."'"; }, $columnToEncryptArray);
+        $columnsStr = implode(', ', $columnArr);
+
+        return "SELECT 
+                    COLUMN_NAME AS ColumnName,
+                    DATA_TYPE AS DataType,
+                    CHARACTER_MAXIMUM_LENGTH AS MaxLength
+                FROM 
+                    INFORMATION_SCHEMA.COLUMNS
+                WHERE 
+                    TABLE_NAME = '$tableName'
+                    AND TABLE_SCHEMA = 'dbo'
+                    AND COLUMN_NAME IN ($columnsStr);";
+    }
+
+    public static function makeEditColumnQuery ($columnName, $tableName) {
+        return "ALTER TABLE [dbo].[$tableName] ALTER COLUMN $columnName VARCHAR(MAX); "."\n";
     }
 }

@@ -6,11 +6,11 @@ include_once("services/QueryMaker.php");
 
 class Orchestrator extends DB {
 
-    private $fileToInit = 274; // Fila donde inicia el paginado => Inicia con el 0
+    private $fileToInit = 289; // Fila donde inicia el paginado => Inicia con el 0
     private $filesToRequestPerPage = 10; // Cantidad de filas por página
     private $totalFiles;
     private $encrypter;
-    private $tableName = "[dbo].[Postulantes]";
+    private $tableName = "Postulantes";
     private $idColumnName = "postulanteid";
     private $columnToEncryptArray = ['nombre', 'email', 'telefono'];
 
@@ -21,8 +21,10 @@ class Orchestrator extends DB {
     // -------------------------- MAIN FUNCTION ----------------------------------------------------
     public function startEncryption() {
 
-        // TODO --------------> AGREGAR QUERY PARA AUMENTAR EL MAXIMO DE LAS FILAS A ENCRIPTAR -> VARCHAR(MAX)
-
+        // Verificamos que las columnas cumplan los requisitos y modificamos el length de ser necesario
+        $typeOfColumns = self::requestTypesAndLengthOfColumns();
+        self::manageColumns($typeOfColumns);
+        
         // Pedimo la cantidad de filas a modificar
         if (!self::requestTotalFiles()) {
             die(print_r("No hay filas que modificar en la tabla" . $this->tableName ."\n". 
@@ -56,6 +58,49 @@ class Orchestrator extends DB {
     }
 
     // -------------------------- SECUNDARIES FUNCTIONS ----------------------------------------------------
+    // TYPE AND LENGTH OF COLUMNS
+    public function requestTypesAndLengthOfColumns() {
+        echo "\n"."Iniciando petición de columnas a modificar"."\n"; 
+        $sql = QueryMaker::makeObtainColumnTypeAndLengthQuery($this->columnToEncryptArray, $this->tableName);
+        $response = parent::sendQuery($sql);
+        if(!$response) {
+            return false;
+        }
+        return $response;
+    }
+
+    public function manageColumns($arrayOfColumns) {
+        echo "\n"."Iniciando revisión de TYPE y LENGTH de columnas a encriptar"."\n"; 
+        $columnsToChange = '';
+        foreach($arrayOfColumns as $column) {
+            if($column['DataType'] != 'varchar') {
+                die(print_r("\n"."Una columna es distinta a VARCHAR. El script se detendrá por no tener un handler para este caso"."\n"));
+            } else if($column['DataType'] == 'varchar' && (int)$column['MaxLength'] !== -1) {
+                $columnsToChange.= QueryMaker::makeEditColumnQuery ($column['ColumnName'], $this->tableName);
+            }
+        }
+
+        if($columnsToChange != '') {
+            try {
+                parent::beginTransaction();
+                $response = parent::updateQuery($columnsToChange);
+                if(!$response) {
+                    die(print_r("\n"."Problema al modificar las columnas de la tabla ".$this->tableName."\n"."El Script se detendrá para su análisis "."\n"));
+                }
+                parent::endTransaction();
+                echo "\n"."Columnas modificadas correctamente";
+                return true;
+            } catch (Exception $e) {
+                parent::restoreData();
+                print_r("Error: " . $e->getMessage());
+                die(print_r("\n"."Problema al modificar las columnas de la tabla ".$this->tableName."\n"."El Script se detendrá para su análisis "."\n"));
+            }
+        }
+        echo "\n"."No se han detectado la necesidad de modificar columnas"."\n";
+        return true;
+    }
+
+    // ENCRYPT
     public function requestTotalFiles() {
         // traemos el total de filas a encriptar
         $sql = QueryMaker::makeTotalFilesQuery ($this->idColumnName, $this->tableName);
