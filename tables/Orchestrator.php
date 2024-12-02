@@ -29,7 +29,7 @@ class Orchestrator extends DB {
             "Por favor, verifique si ingresó los datos correctamente"));
         }
         // Iniciamos el proceso
-        while($this->fileToInit <= 276) {  // TODO -----------------------------> RECORDAR PONER ACÁ EL $totalFiles
+        while($this->fileToInit <= $this->fileToInit + 10) {  // TODO -----------------------------> RECORDAR PONER ACÁ EL $totalFiles
             // Pedimos los datos a encriptar
             $filesToEncrypt = self::callRows();
             if (!$filesToEncrypt) {
