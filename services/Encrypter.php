@@ -1,11 +1,13 @@
 <?php
 
+include_once("Config.php");
+
 class Encrypter {
     private $method ="AES-256-ECB";
     private $key;
 
-    public function __constructor() {
-        $this->key = hash('sha256', "M@sterKey254", true);
+    public function __construct() {
+        $this->key = hash('sha256', "CLAVE_ENCRYPT", true);
     }
 
     public function Encriptar($data) {
