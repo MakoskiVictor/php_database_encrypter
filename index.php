@@ -1,14 +1,14 @@
 <?php
 
 include_once("db/DB.php");
-include_once("tables/Orchestrator.php");
+include_once("tables/TableProcessor.php");
 
 $db = new DB();
 if ($db->connect()) {
-    $orchestrator = new Orchestrator();
+    $tableProcessor = new TableProcessor();
     $conect = $db->getConection();
-    $orchestrator->useConection($conect);
-    $orchestrator->startEncryption();
+    $tableProcessor->useConection($conect);
+    $tableProcessor->startEncryption();
     $db->disconnect();
 } else {
     echo "Malió sal la cosa (｡•́︿•̀｡)"."\n";

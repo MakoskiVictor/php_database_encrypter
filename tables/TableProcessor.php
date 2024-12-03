@@ -5,15 +5,15 @@ include_once("services/Encrypter.php");
 include_once("services/QueryMaker.php");
 include_once("services/ProgressCalculator.php");
 
-class Orchestrator extends DB {
+class TableProcessor extends DB {
 
     private $fileToInit = 0; // Fila donde inicia el paginado => Inicia con el 0
     private $filesToRequestPerPage = 10; // Cantidad de filas por página
     private $totalFiles;
     private $encrypter;
-    private $tableName = "solicitud"; //"Postulantes";
-    private $idColumnName = "id"; //"postulanteid";
-    private $columnToEncryptArray = ['correo', 'telefono']; //['nombre', 'email', 'telefono'];
+    private $tableName = "Postulantes"; // "CargaMovimientos_Pareo"; // "personas"; //"solicitud"; //"Postulantes";
+    private $idColumnName = "postulanteid"; // "registroid"; // "personaid"; //"id"; // "postulanteid";
+    private $columnToEncryptArray = ['nombre', 'email', 'telefono']; // ['NombreTrabajador'];// ['nombre', 'appaterno', 'apmaterno', 'correo', 'fono', 'telefono']; // ['correo', 'telefono']; // ['nombre', 'email', 'telefono'];
     private $progressCalculator;
 
     function __construct() {
@@ -34,7 +34,7 @@ class Orchestrator extends DB {
             "Por favor, verifique si ingresó los datos correctamente"));
         }
         // Iniciamos el proceso
-        while($this->fileToInit <=  30) {  // TODO -----------------------------> RECORDAR PONER ACÁ EL $totalFiles
+        while($this->fileToInit <=  $this->totalFiles) {  // TODO -----------------------------> RECORDAR PONER ACÁ EL $totalFiles
             // Log del porcentage
             $this->progressCalculator->calculatePercentage($this->totalFiles, $this->fileToInit);
             // Pedimos los datos a encriptar
