@@ -2,18 +2,14 @@
 
 class QueryMaker {
     public static function makeTotalFilesQuery ($idColumnName, $tableName) {
-        return "SELECT COUNT($idColumnName) AS TotalFiles
-                FROM [dbo].[$tableName];";
+        return "SELECT COUNT($idColumnName) AS TotalFiles FROM [dbo].[$tableName];";
     }
 
     public static function makeSelectBlockOfFilesQuery($idColumnName, $columnToEncryptArray, $tableName) {
         // Creamos un string con todos los nombres de columnas
         $columnsStr = implode(', ', $columnToEncryptArray);
         
-        return "SELECT $idColumnName, $columnsStr
-                FROM [dbo].[$tableName]
-                ORDER BY $idColumnName ASC 
-                OFFSET ? ROWS FETCH NEXT ? ROWS ONLY;";
+        return "SELECT $idColumnName, $columnsStr FROM [dbo].[$tableName] ORDER BY $idColumnName ASC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY;";
     }
 
     public static function makeUpdateQuery($idColumnName, $columnToEncryptArray, $tableName) {

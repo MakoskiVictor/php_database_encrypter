@@ -3,19 +3,22 @@
 include_once("db/DB.php");
 include_once("services/Encrypter.php");
 include_once("services/QueryMaker.php");
+include_once("services/ProgressCalculator.php");
 
 class Orchestrator extends DB {
 
-    private $fileToInit = 289; // Fila donde inicia el paginado => Inicia con el 0
+    private $fileToInit = 0; // Fila donde inicia el paginado => Inicia con el 0
     private $filesToRequestPerPage = 10; // Cantidad de filas por página
     private $totalFiles;
     private $encrypter;
-    private $tableName = "Postulantes";
-    private $idColumnName = "postulanteid";
-    private $columnToEncryptArray = ['nombre', 'email', 'telefono'];
+    private $tableName = "solicitud"; //"Postulantes";
+    private $idColumnName = "id"; //"postulanteid";
+    private $columnToEncryptArray = ['correo', 'telefono']; //['nombre', 'email', 'telefono'];
+    private $progressCalculator;
 
     function __construct() {
         $this->encrypter = new Encrypter();
+        $this->progressCalculator = new ProgressCalculator();
     }
 
     // -------------------------- MAIN FUNCTION ----------------------------------------------------
@@ -31,11 +34,13 @@ class Orchestrator extends DB {
             "Por favor, verifique si ingresó los datos correctamente"));
         }
         // Iniciamos el proceso
-        while($this->fileToInit <= $this->fileToInit + 10) {  // TODO -----------------------------> RECORDAR PONER ACÁ EL $totalFiles
+        while($this->fileToInit <=  30) {  // TODO -----------------------------> RECORDAR PONER ACÁ EL $totalFiles
+            // Log del porcentage
+            $this->progressCalculator->calculatePercentage($this->totalFiles, $this->fileToInit);
             // Pedimos los datos a encriptar
             $filesToEncrypt = self::callRows();
             if (!$filesToEncrypt) {
-                echo ("\n"."¡100% de los datos encriptados! —ฅ/ᐠ. ̫ .ᐟ\ฅ —"."\n");
+                echo ("\n"."¡Todos los datos encriptados! —ฅ/ᐠ. ̫ .ᐟ\ฅ —"."\n");
                 break;
             }
             // Encriptamos los datos
@@ -45,7 +50,6 @@ class Orchestrator extends DB {
                 parent::beginTransaction();
                 foreach ($encryptedFiles as $row) {
                     self::sendUpdate($row);
-                    echo "\n"."ID: " . $row['postulanteid'] . " Encriptado con éxito!"."\n";
                 }
                 parent::endTransaction();
                 // Actualizamos el index
@@ -100,13 +104,13 @@ class Orchestrator extends DB {
         return true;
     }
 
-    // ENCRYPT
+    // ENCRYPT --------------------------------------------------------------------------------------------------------------------
     public function requestTotalFiles() {
         // traemos el total de filas a encriptar
         $sql = QueryMaker::makeTotalFilesQuery ($this->idColumnName, $this->tableName);
         $response = parent::sendQuery($sql);
         if(!$response) {
-            echo "\n"."No hay respuesta de la DB (ಠ╭╮ಠ)";
+            echo "\n"."No hay respuesta de la DB al solicitar la cantidad de filas (ಠ╭╮ಠ)";
             return false;
         }
         echo "\n"."Cantidad de filas en la tabla: " . $response[0]['TotalFiles'] . " ⊂(・﹏・⊂)"."\n";
@@ -127,15 +131,20 @@ class Orchestrator extends DB {
 
     public function toEncrypt($files) {
         // Encriptar resultados
-        return $this->encrypter->EncriptarArrayDeArray($files, ['nombre', 'email', 'telefono']);
+        return $this->encrypter->EncriptarArrayDeArray($files, $this->columnToEncryptArray);
     }
+
     public function sendUpdate($files) {
         $sql = QueryMaker::makeUpdateQuery($this->idColumnName, $this->columnToEncryptArray, $this->tableName);
-        $params = [$files['nombre'],$files['email'],$files['telefono'],$files['postulanteid']];
+        $datosEncriptados = array_map(function($fileName) use ($files) { 
+            return $files[$fileName];
+         }, $this->columnToEncryptArray);
+         $id = $files[$this->idColumnName];
+         $params = array_merge($datosEncriptados, [$id]);
 
             $response = parent::updateQuery($sql, $params);
             if(!$response) {
-                echo "\n"."No hay respuesta de la DB Postulantes (ಠ╭╮ಠ)";
+                die(print_r("\n"."No hay respuesta de la tabla ".$this->tableName." al enviar las filas encriptadas (ಠ╭╮ಠ)"));
                 return false;
             }
             return true;
