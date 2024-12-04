@@ -7,18 +7,23 @@ include_once("services/ProgressCalculator.php");
 
 class TableProcessor extends DB {
 
-    private $fileToInit = 0; // Fila donde inicia el paginado => Inicia con el 0
-    private $filesToRequestPerPage = 10; // Cantidad de filas por página
+    private $fileToInit; // = 0; // Fila donde inicia el paginado => Inicia con el 0
+    private $filesToRequestPerPage; // = 10; // Cantidad de filas por página
     private $totalFiles;
     private $encrypter;
-    private $tableName = "Postulantes"; // "CargaMovimientos_Pareo"; // "personas"; //"solicitud"; //"Postulantes";
-    private $idColumnName = "postulanteid"; // "registroid"; // "personaid"; //"id"; // "postulanteid";
-    private $columnToEncryptArray = ['nombre', 'email', 'telefono']; // ['NombreTrabajador'];// ['nombre', 'appaterno', 'apmaterno', 'correo', 'fono', 'telefono']; // ['correo', 'telefono']; // ['nombre', 'email', 'telefono'];
+    private $tableName; // = "Postulantes"; // "CargaMovimientos_Pareo"; // "personas"; //"solicitud"; //"Postulantes";
+    private $idColumnName; // = "postulanteid"; // "registroid"; // "personaid"; //"id"; // "postulanteid";
+    private $columnToEncryptArray; // = ['nombre', 'email', 'telefono']; // ['NombreTrabajador'];// ['nombre', 'appaterno', 'apmaterno', 'correo', 'fono', 'telefono']; // ['correo', 'telefono']; // ['nombre', 'email', 'telefono'];
     private $progressCalculator;
 
-    function __construct() {
+    function __construct($definitions) {
         $this->encrypter = new Encrypter();
         $this->progressCalculator = new ProgressCalculator();
+        $this->fileToInit = $definitions['fileToInit'];
+        $this->filesToRequestPerPage = $definitions['filesToRequestPerPage'];
+        $this->tableName = $definitions['tableName'];
+        $this->idColumnName = $definitions['idColumnName'];
+        $this->columnToEncryptArray = $definitions['columnToEncryptArray'];
     }
 
     // -------------------------- MAIN FUNCTION ----------------------------------------------------
@@ -30,7 +35,7 @@ class TableProcessor extends DB {
         
         // Pedimo la cantidad de filas a modificar
         if (!self::requestTotalFiles()) {
-            die(print_r("No hay filas que modificar en la tabla" . $this->tableName ."\n". 
+            die(print_r("\n"."No hay filas que modificar en la tabla" . $this->tableName ."\n". 
             "Por favor, verifique si ingresó los datos correctamente"));
         }
         // Iniciamos el proceso
@@ -64,6 +69,8 @@ class TableProcessor extends DB {
     // -------------------------- SECUNDARIES FUNCTIONS ----------------------------------------------------
     // TYPE AND LENGTH OF COLUMNS
     public function requestTypesAndLengthOfColumns() {
+        //echo "\n"."TRABAJANDO LA TABLA: ".$this->tableName."\n"; 
+        echo "\n"."\033[32mTRABAJANDO LA TABLA: {$this->tableName}\033[0m\n";
         echo "\n"."Iniciando petición de columnas a modificar"."\n"; 
         $sql = QueryMaker::makeObtainColumnTypeAndLengthQuery($this->columnToEncryptArray, $this->tableName);
         $response = parent::sendQuery($sql);
@@ -78,7 +85,7 @@ class TableProcessor extends DB {
         $columnsToChange = '';
         foreach($arrayOfColumns as $column) {
             if($column['DataType'] != 'varchar') {
-                die(print_r("\n"."Una columna es distinta a VARCHAR. El script se detendrá por no tener un handler para este caso"."\n"));
+                die("\n"."\033[31mUna columna es distinta a VARCHAR. El script se detendrá por no tener un handler para este caso\033[0m\n"."\n");
             } else if($column['DataType'] == 'varchar' && (int)$column['MaxLength'] !== -1) {
                 $columnsToChange.= QueryMaker::makeEditColumnQuery ($column['ColumnName'], $this->tableName);
             }
@@ -92,7 +99,7 @@ class TableProcessor extends DB {
                     die(print_r("\n"."Problema al modificar las columnas de la tabla ".$this->tableName."\n"."El Script se detendrá para su análisis "."\n"));
                 }
                 parent::endTransaction();
-                echo "\n"."Columnas modificadas correctamente";
+                echo "\n"."Columnas modificadas correctamente"."\n";
                 return true;
             } catch (Exception $e) {
                 parent::restoreData();
