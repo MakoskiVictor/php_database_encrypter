@@ -3,8 +3,8 @@
 include_once("Config.php");
 
 class Encrypter {
-     private $method ="AES-256-ECB";
-     private $key = "a8a708c9d4c4efc3e4f8321f445b2a2f3c57de53f29ab09a3fddf3627d0c7d8a";
+    private $method ="AES-256-ECB";
+    private $key = "a8a708c9d4c4efc3e4f8321f445b2a2f3c57de53f29ab09a3fddf3627d0c7d8a";
 
     public function Encriptar($data) {
         $encrypted = openssl_encrypt($data, $this->method , $this->key, 0);
