@@ -4,15 +4,19 @@ include_once("Config.php");
 
 class Encrypter {
     private $method ="AES-256-ECB";
-    private $key = "a8a708c9d4c4efc3e4f8321f445b2a2f3c57de53f29ab09a3fddf3627d0c7d8a";
+    private $key = KEY_ENCRYPT;
 
     public function Encriptar($data) {
-        $encrypted = openssl_encrypt($data, $this->method , $this->key, 0);
-        if($encrypted === false) {
-            return $data;
-            throw new Exception("Error al Encriptar los datos");
+        $canBeEncrypted = self::isEncrypted($data);
+        if($canBeEncrypted) {
+            $encrypted = openssl_encrypt($data, $this->method , $this->key, 0);
+            if($encrypted === false) {
+                return $data;
+                throw new Exception("Error al Encriptar los datos");
+            }
+            return base64_encode($encrypted);
         }
-        return base64_encode($encrypted);
+        return $data;
     }
 
     public function Desencriptar($data) {
@@ -24,6 +28,15 @@ class Encrypter {
         }
         return $decrypted;
     } 
+
+    public function isEncrypted ($data) {
+        $decoded = base64_decode($data);
+        $decrypted = openssl_decrypt($decoded, $this->method, $this->key, 0);
+        if($decrypted === false) {
+            return true;
+        }
+        return false;
+    }
 
     public function DesencriptarArray($data, $types) {
         if (!is_array($data)) {

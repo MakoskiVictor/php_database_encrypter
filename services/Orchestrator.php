@@ -18,7 +18,7 @@ class Orchestrator {
                 'idColumnName' => 'postulanteid',
                 'columnToEncryptArray' => ['nombre', 'email', 'telefono']
             ],
-            'Personas' => [
+            /* 'Personas' => [
                 'fileToInit' => 0, 
                 'filesToRequestPerPage' => 10, 
                 'tableName' => 'personas',
@@ -38,7 +38,7 @@ class Orchestrator {
                 'tableName' => 'solicitud',
                 'idColumnName' => 'id',
                 'columnToEncryptArray' => ['correo', 'telefono']
-            ]
+            ] */
         ];
     }
 
